@@ -157,7 +157,11 @@ view_selection(DataCosts const & data_costs, UniGraph * graph, Settings const & 
     #ifdef RESEARCH
     #pragma omp parallel for schedule(dynamic)
     #endif
+#if !defined(_MSC_VER)
     for (std::size_t i = 0; i < components.size(); ++i) {
+#else
+    for (std::int64_t i = 0; i < components.size(); ++i) {
+#endif
         switch (settings.smoothness_term) {
             case SMOOTHNESS_TERM_POTTS:
                 mrfs[i]->set_smooth_cost(*potts);

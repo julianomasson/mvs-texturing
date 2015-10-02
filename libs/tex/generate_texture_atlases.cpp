@@ -152,7 +152,9 @@ generate_texture_atlases(std::vector<TexturePatch::Ptr> * orig_texture_patches,
             }
         }
 
+#if !defined(_MSC_VER)
         #pragma omp task
+#endif
         texture_atlas->finalize();
     }
 
@@ -160,7 +162,9 @@ generate_texture_atlases(std::vector<TexturePatch::Ptr> * orig_texture_patches,
         << " 100%... done." << std::endl;
     util::WallTimer timer;
     std::cout << "\tFinalizing texture atlases... " << std::flush;
+#if !defined(_MSC_VER)
     #pragma omp taskwait
+#endif
     std::cout << "done. (Took: " << timer.get_elapsed_sec() << "s)" << std::endl;
 
     /* End of single region */

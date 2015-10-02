@@ -8,6 +8,7 @@
  */
 
 #include <algorithm>
+#include <cstdint>
 
 #include "lbp_graph.h"
 
@@ -20,13 +21,21 @@ ENERGY_TYPE LBPGraph::compute_energy() {
     ENERGY_TYPE energy = 0;
 
     #pragma omp parallel for reduction(+:energy)
+#if !defined(_MSC_VER)
     for (std::size_t vertex_idx = 0; vertex_idx < vertices.size(); ++vertex_idx) {
+#else
+    for (std::int64_t vertex_idx = 0; vertex_idx < vertices.size(); ++vertex_idx) {
+#endif
         Vertex const & vertex = vertices[vertex_idx];
         energy += vertex.data_cost;
     }
 
     #pragma omp parallel for reduction(+:energy)
+#if !defined(_MSC_VER)
     for (std::size_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
+#else
+    for (std::int64_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
+#endif
         DirectedEdge const & edge = edges[edge_idx];
         energy += smooth_cost_func(edge.v1, edge.v2,
             vertices[edge.v1].label, vertices[edge.v2].label);
@@ -38,7 +47,11 @@ ENERGY_TYPE LBPGraph::compute_energy() {
 ENERGY_TYPE LBPGraph::optimize(int num_iterations) {
     for (int i = 0; i < num_iterations; ++i) {
         #pragma omp parallel for
+#if !defined(_MSC_VER)
         for (std::size_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
+#else
+        for (std::int64_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
+#endif
             DirectedEdge & edge = edges[edge_idx];
             std::vector<int> const & labels1 = vertices[edge.v1].labels;
             std::vector<int> const & labels2 = vertices[edge.v2].labels;
@@ -66,7 +79,11 @@ ENERGY_TYPE LBPGraph::optimize(int num_iterations) {
         }
 
         #pragma omp parallel for
+#if !defined(_MSC_VER)
         for (std::size_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
+#else
+        for (std::int64_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
+#endif
             DirectedEdge & edge = edges[edge_idx];
             edge.new_msg.swap(edge.old_msg);
             ENERGY_TYPE min_msg = std::numeric_limits<ENERGY_TYPE>::max();
@@ -78,7 +95,11 @@ ENERGY_TYPE LBPGraph::optimize(int num_iterations) {
     }
 
     #pragma omp parallel for
+#if !defined(_MSC_VER)
     for (std::size_t vertex_idx = 0; vertex_idx < vertices.size(); ++vertex_idx) {
+#else
+    for (std::int64_t vertex_idx = 0; vertex_idx < vertices.size(); ++vertex_idx) {
+#endif
         Vertex & vertex = vertices[vertex_idx];
         ENERGY_TYPE min_energy = std::numeric_limits<ENERGY_TYPE>::max();
         for (std::size_t j = 0; j < vertex.labels.size(); ++j) {
