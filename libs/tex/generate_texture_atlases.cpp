@@ -114,7 +114,11 @@ generate_texture_atlases(std::vector<TexturePatch::Ptr> * orig_texture_patches,
 
     std::size_t const total_num_patches = texture_patches.size();
     std::size_t remaining_patches = texture_patches.size();
+#if !defined(_WIN32)
     std::ofstream tty("/dev/tty", std::ios_base::out);
+#else
+    std::ostream &tty = std::cout;
+#endif
 
     #pragma omp parallel
     {
