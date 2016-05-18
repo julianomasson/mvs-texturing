@@ -2,7 +2,7 @@ file (GLOB HEADERS "*.h")
 file (GLOB SOURCES "[^_]*.cpp")
 
 set(LIBRARY mrf)
-add_library(${LIBRARY} STATIC ${SOURCES})
+add_library(${LIBRARY} STATIC ${SOURCES} ${HEADERS})
 if(RESEARCH)
     add_dependencies(${LIBRARY} ext_gco)
     target_link_libraries(${LIBRARY} gco)
