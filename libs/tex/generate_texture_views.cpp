@@ -7,6 +7,13 @@
  * of the BSD 3-Clause license. See the LICENSE.txt file for details.
  */
 
+#if defined(_WIN32)
+#   define WIN32_LEAN_AND_MEAN
+#   define VC_EXTRALEAN
+#   define NOMINMAX
+#   include <windows.h>
+#endif
+
 #include <util/timer.h>
 #include <util/tokenizer.h>
 #include <mve/image_io.h>
@@ -190,7 +197,18 @@ from_nvm_scene(std::string const & nvm_file, std::vector<TextureView> * texture_
         image = mve::image::image_undistort_vsfm<uint8_t>
             (image, mve_cam.flen, nvm_cam.radial_distortion);
 
-        std::string image_file = std::string("/tmp/") + util::fs::basename(nvm_cam.filename);
+#if !defined(_WIN32)
+        std::string temp_dir = std::string("/tmp/");
+#else
+        TCHAR tmpbuf[MAX_PATH];
+        DWORD retval = GetTempPath(MAX_PATH, tmpbuf);
+        if (retval > MAX_PATH || retval == 0) {
+            std::cerr << "ERROR: GetTempPath() returned " << retval << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+        std::string temp_dir = tmpbuf;
+#endif
+        std::string image_file = temp_dir + util::fs::basename(nvm_cam.filename);
         mve::image::save_png_file(image, image_file);
 
         #pragma omp critical
