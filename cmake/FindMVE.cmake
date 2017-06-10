@@ -17,38 +17,48 @@
 set(MVE_INCLUDE_DIR ${MVE_ROOT}/libs CACHE PATH "MVE include dir")
 find_library(MVE_DMRECON_LIBRARY_RELEASE NAMES mve_dmrecon
 	HINTS ${MVE_ROOT}/libs/dmrecon
-		  ${MVE_ROOT}/libs/dmrecon/Release)
+		  ${MVE_ROOT}/libs/dmrecon/Release
+		  ${MVE_ROOT}/build/libs/dmrecon/Release)
 find_library(MVE_DMRECON_LIBRARY_DEBUG NAMES mve_dmrecon_d
 	HINTS ${MVE_ROOT}/libs/dmrecon
-		  ${MVE_ROOT}/libs/dmrecon/Debug)
+		  ${MVE_ROOT}/libs/dmrecon/Debug
+		  ${MVE_ROOT}/build/libs/dmrecon/Debug)
 
 find_library(MVE_MVE_LIBRARY_RELEASE NAMES mve
 	HINTS ${MVE_ROOT}/libs/mve
-		  ${MVE_ROOT}/libs/mve/Release)
+		  ${MVE_ROOT}/libs/mve/Release
+		  ${MVE_ROOT}/build/libs/mve/Release)
 	  find_library(MVE_MVE_LIBRARY_DEBUG NAMES mve_d
 	HINTS ${MVE_ROOT}/libs/mve
-		  ${MVE_ROOT}/libs/mve/Debug)
+		  ${MVE_ROOT}/libs/mve/Debug
+		  ${MVE_ROOT}/build/libs/mve/Debug)
 
 find_library(MVE_OGL_LIBRARY_RELEASE NAMES mve_ogl
 	HINTS ${MVE_ROOT}/libs/ogl
-		  ${MVE_ROOT}/libs/ogl/Release)
+		  ${MVE_ROOT}/libs/ogl/Release
+		  ${MVE_ROOT}/build/libs/ogl/Release)
 find_library(MVE_OGL_LIBRARY_DEBUG NAMES mve_ogl_d
 	HINTS ${MVE_ROOT}/libs/ogl
-		  ${MVE_ROOT}/libs/ogl/Debug)
+		  ${MVE_ROOT}/libs/ogl/Debug
+		  ${MVE_ROOT}/build/libs/ogl/Debug)
 
 find_library(MVE_SFM_LIBRARY_RELEASE NAMES mve_sfm
 	HINTS ${MVE_ROOT}/libs/sfm
-		  ${MVE_ROOT}/libs/sfm/Release)
+		  ${MVE_ROOT}/libs/sfm/Release
+		  ${MVE_ROOT}/build/libs/sfm/Release)
 	  find_library(MVE_SFM_LIBRARY_DEBUG NAMES mve_sfm_d
 	HINTS ${MVE_ROOT}/libs/sfm
-		  ${MVE_ROOT}/libs/sfm/Debug)
+		  ${MVE_ROOT}/libs/sfm/Debug
+		  ${MVE_ROOT}/build/libs/sfm/Debug)
 
 find_library(MVE_UTIL_LIBRARY_RELEASE NAMES mve_util
 	HINTS ${MVE_ROOT}/libs/util
-		  ${MVE_ROOT}/libs/util/Release)
+		  ${MVE_ROOT}/libs/util/Release
+		  ${MVE_ROOT}/build/libs/util/Release)
 find_library(MVE_UTIL_LIBRARY_DEBUG NAMES mve_util_d
 	HINTS ${MVE_ROOT}/libs/util
-		  ${MVE_ROOT}/libs/util/Debug)
+		  ${MVE_ROOT}/libs/util/Debug
+		  ${MVE_ROOT}/build/libs/util/Debug)
 
 if(MVE_DMRECON_LIBRARY_RELEASE)
 	set(MVE_DMRECON_LIBRARY optimized ${MVE_DMRECON_LIBRARY_RELEASE})
