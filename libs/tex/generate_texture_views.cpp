@@ -208,15 +208,101 @@ from_nvm_scene(std::string const & nvm_file, std::vector<TextureView> * texture_
     }
 }
 
+/*
+Cameras file:
+<qtd_images>
+<path_to_img_0> <tx> <ty> <tz> <R00> <R01> <R02> <R10> <R11> <R12> <R20> <R21> <R22> <focal_length> <d0> <d1> <pixel_aspect_ratio> <ppx> <ppy>
+<path_to_img_1> <tx> <ty> <tz> <R00> <R01> <R02> <R10> <R11> <R12> <R20> <R21> <R22> <focal_length> <d0> <d1> <pixel_aspect_ratio> <ppx> <ppy>
+...
+For details regarding the parameters take a look in the usage inside texrecon/arguments.cpp
+*/
+void
+from_cameras_scene(std::string const & cameras_file, std::vector<TextureView> * texture_views) {
+	std::vector<std::string> cameras;
+	/* Read cameras file */
+	std::ifstream in_file(cameras_file.c_str());
+	if (!in_file.good())
+		throw util::FileException(util::fs::basename(cameras_file), std::strerror(errno));
+
+	std::string line;
+	std::getline(in_file, line);
+	const auto number_of_cameras = std::stoi(line);
+	cameras.reserve(number_of_cameras);
+#if !defined(_MSC_VER)
+	for (std::size_t i = 0; i < number_of_cameras; i += 2) {
+#else
+	for (std::int64_t i = 0; i < number_of_cameras; i += 2) {
+#endif
+		std::getline(in_file, line);
+		cameras.emplace_back(line);
+	}
+
+	ProgressCounter view_counter("\tLoading", cameras.size());
+#pragma omp parallel for
+#if !defined(_MSC_VER)
+	for (std::size_t i = 0; i < cameras.size(); i += 2) {
+#else
+	for (std::int64_t i = 0; i < cameras.size(); i += 2) {
+#endif
+		view_counter.progress<SIMPLE>();
+		util::Tokenizer tokenizer;
+		tokenizer.split(cameras[i]);
+#pragma omp critical
+		if (tokenizer.size() != 19) {
+			std::cerr << "Invalid cameras file"<< std::endl;
+			std::exit(EXIT_FAILURE);
+		}
+
+		/* Create cam_info and eventually undistort image. */
+		mve::CameraInfo cam_info;
+		cam_info.set_translation_from_string(tokenizer.concat(1, 4));
+		cam_info.set_rotation_from_string(tokenizer.concat(4, 13));
+
+		cam_info.flen = tokenizer.get_as<float>(13);
+		cam_info.dist[0] = tokenizer.get_as<float>(14);
+		cam_info.dist[1] = tokenizer.get_as<float>(15);
+		cam_info.paspect = tokenizer.get_as<float>(16);
+		cam_info.ppoint[0] = tokenizer.get_as<float>(17);
+		cam_info.ppoint[1] = tokenizer.get_as<float>(18);
+
+		std::string image_file = tokenizer.get_as<std::string>(0);
+		if (cam_info.dist[0] != 0.0f) {
+			mve::ByteImage::Ptr image = mve::image::load_file(image_file);
+			if (cam_info.dist[1] != 0.0f) {
+				image = mve::image::image_undistort_k2k4<uint8_t>(image,
+					cam_info.flen, cam_info.dist[0], cam_info.dist[1]);
+			}
+			else {
+				image = mve::image::image_undistort_vsfm<uint8_t>(image,
+					cam_info.flen, cam_info.dist[0]);
+			}
+
+			image_file = std::string("/tmp/") + util::fs::basename(image_file);
+			mve::image::save_png_file(image, image_file);
+		}
+
+#pragma omp critical
+		texture_views->push_back(TextureView(i, cam_info, image_file));
+
+		view_counter.inc();
+	}
+	}
+
 void
 generate_texture_views(std::string const & in_scene, std::vector<TextureView> * texture_views) {
     /* Determine input format. */
 
     /* BUNDLEFILE */
     if (util::fs::file_exists(in_scene.c_str())) {
-        std::string const & file = in_scene;
-        std::string extension = util::string::uppercase(util::string::right(file, 3));
-        if (extension == "NVM") from_nvm_scene(file, texture_views);
+        std::string extension = util::string::uppercase(in_scene.substr(in_scene.find_last_of('.'), in_scene.size()));
+		if (extension == ".NVM")
+		{
+			from_nvm_scene(in_scene, texture_views);
+		}
+		else if (extension == ".CAMERAS")
+		{
+			from_cameras_scene(in_scene, texture_views);
+		}
     }
 
     /* SCENE_FOLDER */
