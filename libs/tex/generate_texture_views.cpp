@@ -229,20 +229,20 @@ from_cameras_scene(std::string const & cameras_file, std::vector<TextureView> * 
 	const auto number_of_cameras = std::stoi(line);
 	cameras.reserve(number_of_cameras);
 #if !defined(_MSC_VER)
-	for (std::size_t i = 0; i < number_of_cameras; i += 2) {
+	for (std::size_t i = 0; i < number_of_cameras; i++) {
 #else
-	for (std::int64_t i = 0; i < number_of_cameras; i += 2) {
+	for (std::int64_t i = 0; i < number_of_cameras; i++) {
 #endif
 		std::getline(in_file, line);
 		cameras.emplace_back(line);
 	}
 
-	ProgressCounter view_counter("\tLoading", cameras.size());
+	ProgressCounter view_counter("\tLoading", number_of_cameras);
 #pragma omp parallel for
 #if !defined(_MSC_VER)
-	for (std::size_t i = 0; i < cameras.size(); i += 2) {
+	for (std::size_t i = 0; i < number_of_cameras; i++) {
 #else
-	for (std::int64_t i = 0; i < cameras.size(); i += 2) {
+	for (std::int64_t i = 0; i < number_of_cameras; i++) {
 #endif
 		view_counter.progress<SIMPLE>();
 		util::Tokenizer tokenizer;
@@ -283,7 +283,6 @@ from_cameras_scene(std::string const & cameras_file, std::vector<TextureView> * 
 
 #pragma omp critical
 		texture_views->push_back(TextureView(i, cam_info, image_file));
-
 		view_counter.inc();
 	}
 	}
